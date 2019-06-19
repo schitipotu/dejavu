@@ -18,7 +18,7 @@ import ResultList from './ResultSet';
 import CloneApp from './CloneApp';
 import ApplyQueryBanner from './ApplyQueryBanner';
 
-import { fetchMappings } from '../../actions';
+import { fetchMappings, updateReactiveList } from '../../actions';
 import { getUrl, getHeaders } from '../../reducers/app';
 import * as dataSelectors from '../../reducers/data';
 import {
@@ -39,6 +39,7 @@ type Props = {
 	indexes: string[],
 	types: string[],
 	headers: any[],
+	updateReactiveList: () => void,
 };
 
 class DataBrowser extends Component<Props> {
@@ -49,6 +50,7 @@ class DataBrowser extends Component<Props> {
 	}
 
 	handleReload = () => {
+		// this.props.updateReactiveList();
 		this.props.fetchMappings();
 	};
 
@@ -165,6 +167,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = {
 	fetchMappings,
+	updateReactiveList,
 };
 
 export default connect(

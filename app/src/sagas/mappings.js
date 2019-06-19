@@ -24,9 +24,9 @@ import {
 } from '../utils/mappings';
 import CustomError from '../utils/CustomError';
 
-const INGNORE_META_TYPES = ['~logs', '.percolator', '~percolator', '_default_'];
+const IGNORE_META_TYPES = ['~logs', '.percolator', '~percolator', '_default_'];
 
-function* handleFetchMappings() {
+export function* handleFetchMappings() {
 	const defaultError = 'Unable to get mappings';
 	const defaultErrorDescription = 'Please add mappings';
 	try {
@@ -48,12 +48,17 @@ function* handleFetchMappings() {
 			const typePropertyMapping = {};
 
 			indexes.forEach(index => {
+				if (versionCode === 7) {
+					data[index].mappings = {
+						_doc: { ...data[index].mappings },
+					};
+				}
 				let typesList = Object.keys(data[index].mappings);
-				typesList = difference(typesList, INGNORE_META_TYPES);
+				typesList = difference(typesList, IGNORE_META_TYPES);
 				if (typesList.length) {
 					typesList.forEach(type => {
 						const typeProperties =
-							data[index].mappings[type].properties || {};
+							data[index].mappings[type].properties;
 						indexTypeMap[index] = [
 							...(indexTypeMap[index] || []),
 							type,
@@ -103,13 +108,17 @@ function* handleFetchMappings() {
 				...extractColumns(mappings[appname], 'nestedProperties'),
 			];
 
-			let visibleColumns = allColumns.filter(col => col !== '_type');
+			let visibleColumns = allColumns.filter(
+				col =>
+					col !== '_type' && col !== '_score' && col !== '_click_id',
+			);
 			if (indexes.length <= 1) {
 				visibleColumns = visibleColumns.filter(col => col !== '_index');
 			}
 
 			let nestedVisibleColumns = allNestedColumns.filter(
-				col => col !== '_type',
+				col =>
+					col !== '_type' && col !== '_score' && col !== '_click_id',
 			);
 			if (indexes.length <= 1) {
 				nestedVisibleColumns = nestedVisibleColumns.filter(
@@ -118,7 +127,7 @@ function* handleFetchMappings() {
 			}
 
 			const filteredTypes = types.filter(
-				type => !INGNORE_META_TYPES.includes(type),
+				type => !IGNORE_META_TYPES.includes(type),
 			);
 
 			const searchColumns = Object.keys(properties).filter(
@@ -142,11 +151,13 @@ function* handleFetchMappings() {
 				...searchColumns.map(field => `${field}.raw`),
 				...searchColumns.map(field => `${field}.search`),
 				...searchColumns.map(field => `${field}.autosuggest`),
+				...searchColumns.map(field => `${field}.english`),
 				'_id',
 			];
 			const searchableColumnsWeights = [
 				...Array(searchColumns.length).fill(3),
 				...Array(searchColumns.length).fill(3),
+				...Array(searchColumns.length).fill(1),
 				...Array(searchColumns.length).fill(1),
 				...Array(searchColumns.length).fill(1),
 				1,
@@ -157,11 +168,13 @@ function* handleFetchMappings() {
 				...nestedSearchColumns.map(field => `${field}.raw`),
 				...nestedSearchColumns.map(field => `${field}.search`),
 				...nestedSearchColumns.map(field => `${field}.autosuggest`),
+				...nestedSearchColumns.map(field => `${field}.english`),
 				'_id',
 			];
 			const nestedSearchableColumnsWeights = [
 				...Array(nestedSearchColumns.length).fill(3),
 				...Array(nestedSearchColumns.length).fill(3),
+				...Array(nestedSearchColumns.length).fill(1),
 				...Array(nestedSearchColumns.length).fill(1),
 				...Array(nestedSearchColumns.length).fill(1),
 				1,
@@ -219,13 +232,21 @@ function* handleFetchMappings() {
 	}
 }
 
-function* handleAddMapping({ indexName, typeName, field, mapping }) {
+function* handleAddMapping({ indexName, typeName, field, mapping, version }) {
 	try {
 		yield put(clearError());
 		const url = yield select(getUrl);
-		yield call(addMapping, indexName, typeName, url, field, mapping);
-		yield put(addMappingSuccess());
+		yield call(
+			addMapping,
+			indexName,
+			typeName,
+			url,
+			field,
+			mapping,
+			version,
+		);
 		yield call(handleFetchMappings); // sagas FTW
+		yield put(addMappingSuccess());
 	} catch (error) {
 		yield put(addMappingFailure());
 		yield put(setError(error));

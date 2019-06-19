@@ -2,7 +2,6 @@
 
 import React, { Component, Fragment } from 'react';
 import { Modal, Input, Select, Row, Col, Button, Tabs } from 'antd';
-import { func, object } from 'prop-types';
 import { connect } from 'react-redux';
 import AceEditor from 'react-ace';
 import { unflatten } from 'flat';
@@ -14,10 +13,13 @@ import {
 	getIndexTypeMap,
 	getTypePropertyMapping,
 } from '../../reducers/mappings';
+import { getVersion } from '../../reducers/version';
 import { addDataRequest } from '../../actions';
 import { isVaildJSON } from '../../utils';
 import getSampleData from '../../utils/sampleData';
 import labelStyles from '../CommonStyles/label';
+import setMode from '../../actions/mode';
+import { MODES } from '../../constants';
 
 import Item from './Item.styles';
 import Cell from '../Cell';
@@ -28,11 +30,13 @@ const { Option } = Select;
 const { TabPane } = Tabs;
 
 type Props = {
-	addDataRequest: (string, string, string, object) => void,
-	indexTypeMap: object,
+	addDataRequest: (string, string, string, any, string, number) => void,
+	indexTypeMap: any,
 	typePropertyMapping?: {
-		[key: string]: object,
+		[key: string]: any,
 	},
+	setMode: string => void,
+	version: number,
 };
 
 type State = {
@@ -44,7 +48,7 @@ type State = {
 	types: string[],
 	selectedType: string,
 	tab: string,
-	tabData: object,
+	tabData: any,
 };
 
 class AddRowModal extends Component<Props, State> {
@@ -62,15 +66,12 @@ class AddRowModal extends Component<Props, State> {
 		tabData: {},
 	};
 
-	componentDidMount() {
-		this.setSampleData();
-	}
-
 	componentDidUpdate(prevProps, prevState) {
-		const { selectedIndex, selectedType } = this.state;
+		const { selectedIndex, selectedType, isShowingModal } = this.state;
 		if (
 			prevState.selectedIndex !== selectedIndex ||
-			prevState.selectedType !== selectedType
+			prevState.selectedType !== selectedType ||
+			prevState.isShowingModal !== isShowingModal
 		) {
 			this.setSampleData();
 		}
@@ -128,6 +129,7 @@ class AddRowModal extends Component<Props, State> {
 	};
 
 	addValue = () => {
+		const { version } = this.props;
 		const {
 			addDataError,
 			addDataValue,
@@ -151,7 +153,10 @@ class AddRowModal extends Component<Props, State> {
 				selectedType,
 				documentId,
 				data,
+				tab,
+				version,
 			);
+
 			this.toggleModal();
 		}
 	};
@@ -174,6 +179,7 @@ class AddRowModal extends Component<Props, State> {
 		this.setState(prevState => ({
 			isShowingModal: !prevState.isShowingModal,
 		}));
+		this.props.setMode(MODES.EDIT);
 	};
 
 	handleTabChange = tab => {
@@ -360,19 +366,15 @@ class AddRowModal extends Component<Props, State> {
 	}
 }
 
-AddRowModal.propTypes = {
-	addDataRequest: func.isRequired,
-	indexTypeMap: object.isRequired,
-	typePropertyMapping: object,
-};
-
 const mapStateToProps = state => ({
 	indexTypeMap: getIndexTypeMap(state),
 	typePropertyMapping: getTypePropertyMapping(state),
+	version: getVersion(state),
 });
 
 const mapDispatchToProps = {
 	addDataRequest,
+	setMode,
 };
 
 export default connect(

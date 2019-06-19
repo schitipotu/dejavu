@@ -1,7 +1,7 @@
 {
 	"name": "@appbaseio/dejavu",
 	"description": "Dejavu - The missing Web UI for Elasticsearch",
-	"version": "3.2.3",
+	"version": "3.3.1",
 	"main": "index.js",
 	"repository": "https://github.com/appbaseio/dejavu.git",
 	"bugs": {
@@ -20,7 +20,7 @@
 		"build:app": "NODE_ENV=production webpack",
 		"build:site": "NODE_ENV=product webpack --config webpack.config.site.js",
 		"build": "yarn build:app && yarn build:site",
-		"format": "prettier --write --use-tabs 'app/src/!(batteries*)**/*.js'",
+		"format": "prettier --write --use-tabs 'app/src/!(batteries*)**/**/*.js'",
 		"build:chrome-extension": "yarn build:app && cd dist/app && rm favicon/manifest.json _redirects && zip -r ../dejavu.zip ."
 	},
 	"husky": {
@@ -33,7 +33,7 @@
 	},
 	"dependencies": {
 		"@appbaseio/designkit": "^0.9.1",
-		"@appbaseio/reactivesearch": "^3.0.0-alpha.11",
+		"@appbaseio/reactivesearch": "^3.0.0-rc.10",
 		"@divyanshu013/media": "^1.0.0",
 		"antd": "^3.10.4",
 		"appbase-js": "^4.0.2-beta.2",
@@ -51,7 +51,7 @@
 		"papaparse": "^4.6.1",
 		"prop-types": "^15.6.2",
 		"react": "^16.5.1",
-		"react-ace": "^6.2.0",
+		"react-ace": "^6.5.0",
 		"react-custom-scrollbars": "^4.2.1",
 		"react-dom": "^16.5.1",
 		"react-element-to-jsx-string": "^14.0.2",

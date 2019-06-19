@@ -6,10 +6,10 @@ import { dateFormatMap } from './date';
 const extractColumns = (mappings, key) =>
 	Object.keys((mappings || {})[key] || []);
 
-const META_FIELDS = ['_index', '_type'];
+const META_FIELDS = ['_index', '_type', '_score', '_click_id'];
 
 const es6mappings = {
-	Text: {
+	'Text: Aggs': {
 		type: 'text',
 		fields: {
 			keyword: {
@@ -17,17 +17,15 @@ const es6mappings = {
 				index: 'true',
 				ignore_above: 256,
 			},
-			autosuggest: {
+			english: {
 				type: 'text',
-				index: 'true',
-				analyzer: 'autosuggest_analyzer',
-				search_analyzer: 'simple',
+				analyzer: 'english',
 			},
 		},
 		analyzer: 'standard',
 		search_analyzer: 'standard',
 	},
-	SearchableText: {
+	'Text: Search': {
 		type: 'text',
 		fields: {
 			keyword: {
@@ -46,6 +44,10 @@ const es6mappings = {
 				index: 'true',
 				analyzer: 'autosuggest_analyzer',
 				search_analyzer: 'simple',
+			},
+			english: {
+				type: 'text',
+				analyzer: 'english',
 			},
 		},
 		analyzer: 'standard',

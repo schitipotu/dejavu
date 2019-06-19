@@ -6,7 +6,14 @@ import {
 } from '../utils';
 import CustomError from '../utils/CustomError';
 
-export const addData = async (indexName, typeName, docId, rawUrl, data) => {
+export const addData = async (
+	indexName,
+	typeName,
+	docId,
+	rawUrl,
+	data,
+	version,
+) => {
 	const defaultError = 'Unable to put data';
 	try {
 		const { url } = parseUrl(rawUrl);
@@ -29,6 +36,10 @@ export const addData = async (indexName, typeName, docId, rawUrl, data) => {
 				finalData += `\n${JSON.stringify(item)}`;
 				finalData += `\n`;
 			});
+		}
+
+		if (version > 5) {
+			baseUrl += `?refresh=wait_for`;
 		}
 		const res = await fetch(`${baseUrl}`, {
 			headers: {
@@ -55,14 +66,25 @@ export const addData = async (indexName, typeName, docId, rawUrl, data) => {
 	}
 };
 
-export const putData = async (indexName, typeName, docId, rawUrl, data) => {
+export const putData = async (
+	indexName,
+	typeName,
+	docId,
+	rawUrl,
+	data,
+	version,
+) => {
 	const defaultError = 'Unable to put data';
 	try {
 		const { url } = parseUrl(rawUrl);
 		const headers = getHeaders(rawUrl);
 		const customHeaders = getCustomHeaders(indexName);
+		let baseUrl = `${url}/${indexName}/${typeName}/${docId}`;
 
-		const res = await fetch(`${url}/${indexName}/${typeName}/${docId}`, {
+		if (version > 5) {
+			baseUrl += '?refresh=wait_for';
+		}
+		const res = await fetch(baseUrl, {
 			headers: {
 				...headers,
 				...convertArrayToHeaders(customHeaders),
@@ -113,7 +135,7 @@ export const deleteData = async (rawUrl, indexName, typeName, queryData) => {
 			...query,
 		};
 		const res = await fetch(
-			`${url}/${indexName}/${typeName}/_delete_by_query`,
+			`${url}/${indexName}/${typeName}/_delete_by_query?wait_for_completion=true&scroll_size=5000`,
 			{
 				headers: {
 					...headers,
@@ -192,7 +214,7 @@ export const bulkUpdate = async (
 		};
 
 		const res = await fetch(
-			`${url}/${indexName}/${typeName}/_update_by_query?conflicts=proceed`,
+			`${url}/${indexName}/${typeName}/_update_by_query?conflicts=proceed&wait_for_completion=true&scroll_size=5000`,
 			{
 				headers: {
 					...headers,
